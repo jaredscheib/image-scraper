@@ -13,10 +13,11 @@ const searchTerm = args.slice(1).join(' ');
 let googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
 
 var writeData = (data) => {
-  var fileName = searchTerm.slice().split(' ').join('');
+  var fileName = searchTerm.slice().split(' ').join('_');
+  
   fs.writeFile(`results/${fileName}-full.json`, JSON.stringify(data, null, 4), (err) => {
     if (err) throw err;
-    console.log(`Saved full JSON results from "${searchTerm}"`)
+    console.log(`Saved full JSON results from Google Image search: "${searchTerm}"`)
   });
 
   var urlData = data.map((item) => {
@@ -25,7 +26,7 @@ var writeData = (data) => {
 
   fs.writeFile(`results/${fileName}-urls_only.json`, JSON.stringify(urlData, null, 4), err => {
     if (err) throw err;
-    console.log(`Saved image urls results from "${searchTerm}"`)
+    console.log(`Saved image URLs from Google Image search: "${searchTerm}"`)
   });
 
   var urlData_thumbnail = data.map((item) => {
@@ -34,7 +35,7 @@ var writeData = (data) => {
 
   fs.writeFile(`results/${fileName}-thumbnails_only.json`, JSON.stringify(urlData_thumbnail, null, 4), err => {
     if (err) throw err;
-    console.log(`Saved full JSON results from "${searchTerm}"`)
+    console.log(`Saved thumbnail URLs from Google Image search: "${searchTerm}"`)
   });
 };
 
@@ -43,12 +44,9 @@ var getImages = (searchTerm, imgTotal, callback) => {
   imgTotal = Math.round(imgTotal / 10) * 10 || 200;
 
   for (var start = 1; start < imgTotal; start += 10) {
-    console.log(start, imgTotal);
     // .search options arg: https://developers.google.com/custom-search/json-api/v1/reference/cse/list
     imagesToResolve.push(googleClient.search(searchTerm, { page: start.toString() }));
   }
-
-  console.log('imagesToResolve', imagesToResolve);
 
   Promise.all(imagesToResolve)
     .then((imageData) => {
