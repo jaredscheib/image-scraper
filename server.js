@@ -8,19 +8,37 @@ const secrets = require('./secrets.js');
 
 const args = process.argv.slice(2);
 const resultsCount = args[0];
-const filePath = args[1];
-const searchTerm = args.slice(2).join(' ');
+const searchTerm = args.slice(1).join(' ');
 
 let googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
 
 var writeData = (data) => {
-  fs.writeFile(filePath, JSON.stringify(data, null, 4), (err) => {
+  var fileName = searchTerm.slice().split(' ').join('');
+  fs.writeFile(`results/${fileName}-full.json`, JSON.stringify(data, null, 4), (err) => {
     if (err) throw err;
-    console.log(`Saved JSON results from "${searchTerm}"`)
+    console.log(`Saved full JSON results from "${searchTerm}"`)
+  });
+
+  var urlData = data.map((item) => {
+    return item.url;
+  });
+
+  fs.writeFile(`results/${fileName}-urls_only.json`, JSON.stringify(urlData, null, 4), err => {
+    if (err) throw err;
+    console.log(`Saved image urls results from "${searchTerm}"`)
+  });
+
+  var urlData_thumbnail = data.map((item) => {
+    return item.thumbnail.url;
+  });
+
+  fs.writeFile(`results/${fileName}-thumbnails_only.json`, JSON.stringify(urlData_thumbnail, null, 4), err => {
+    if (err) throw err;
+    console.log(`Saved full JSON results from "${searchTerm}"`)
   });
 };
 
-var getImages = (searchTerm, imgTotal) => {
+var getImages = (searchTerm, imgTotal, callback) => {
   var imagesToResolve = [];
   imgTotal = Math.round(imgTotal / 10) * 10 || 200;
 
@@ -35,7 +53,7 @@ var getImages = (searchTerm, imgTotal) => {
   Promise.all(imagesToResolve)
     .then((imageData) => {
       var flattened = [].concat.apply([], imageData);
-      return writeData(flattened);
+      return callback(flattened);
     })
     .catch((err) => {
       console.log('error', err);
@@ -43,4 +61,4 @@ var getImages = (searchTerm, imgTotal) => {
     });
 };
 
-getImages(searchTerm, resultsCount);
+getImages(searchTerm, resultsCount, writeData);
