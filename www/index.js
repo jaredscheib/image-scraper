@@ -1,16 +1,16 @@
 window.onload = function () {
-  loadScript('allImgURLs.js', function () {
-    for (var key in allImgURLs) {
+  loadScript('./allImgData.js', function () {
+    for (var key in allImgData) {
       var newH1 = document.createElement('H1');
-      var title = document.createTextNode(key);
+      var title = document.createTextNode(key + ' - ' + allImgData[key].length + ' thumbnails ("photo" filter)');
       var newDiv = document.createElement('div');
 
       newH1.appendChild(title);
       document.body.appendChild(newH1);
 
-      allImgURLs[key].forEach(function (url) {
+      allImgData[key].forEach(function (data) {
         var newImg = document.createElement('img');
-        newImg.src = url;
+        newImg.src = data.thumbnail.url;
         document.body.appendChild(newImg);
       });
       
