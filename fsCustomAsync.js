@@ -3,6 +3,7 @@
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const readPath = './results/';
+const writePath = './www/allImgData.js';
 
 var concatImgDataAsync = (dirPath) => {
   let allImgFiles = [];
@@ -14,7 +15,7 @@ var concatImgDataAsync = (dirPath) => {
       .filter((file) => { return file.indexOf('all_data') !== -1; })
       .map((file) => {
         allImgFiles.push(file);
-        return fs.readFileAsync(`./fixtures/${file}`, 'utf8');
+        return fs.readFileAsync(`./results/${file}`, 'utf8');
       });
     }))
     .then((imgSets) => {
@@ -22,7 +23,7 @@ var concatImgDataAsync = (dirPath) => {
         let key = allImgFiles[i].split('-')[0];
         allImgData[key] = JSON.parse(set);
       });
-      return fs.writeFileAsync('./fixtures/allImgData.js', `var allImgData = ${JSON.stringify(allImgData, null, 4)};`, { flags: 'w' })
+      return fs.writeFileAsync(writePath, `var allImgData = ${JSON.stringify(allImgData, null, 4)};`, { flags: 'w' })
     })
     .catch((err) => { throw err; })  
 };
