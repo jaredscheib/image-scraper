@@ -1,6 +1,6 @@
 window.onload = function () {
-  loadScript('all_thumbnails.js', function () {
-    for (var key in thumbnails) {
+  loadScript('allImgURLs.js', function () {
+    for (var key in allImgURLs) {
       var newH1 = document.createElement('H1');
       var title = document.createTextNode(key);
       var newDiv = document.createElement('div');
@@ -8,7 +8,7 @@ window.onload = function () {
       newH1.appendChild(title);
       document.body.appendChild(newH1);
 
-      thumbnails[key].forEach(function (url) {
+      allImgURLs[key].forEach(function (url) {
         var newImg = document.createElement('img');
         newImg.src = url;
         document.body.appendChild(newImg);

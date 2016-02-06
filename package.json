@@ -23,7 +23,8 @@
   },
   "homepage": "https://github.com/tagasauris/image-scraper#readme",
   "dependencies": {
-    "google-images": "^1.0.0"
+    "google-images": "^1.0.0",
+    "request": "^2.69.0"
   },
   "devDependencies": {
     "eslint": "^1.10.3",
