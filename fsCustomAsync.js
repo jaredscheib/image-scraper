@@ -2,7 +2,7 @@
 
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
-const readPath = './fixtures/';
+const readPath = './results/';
 
 var concatImgDataAsync = (dirPath) => {
   let allImgFiles = [];
