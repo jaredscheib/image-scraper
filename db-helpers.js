@@ -7,6 +7,7 @@ const Firebase = require('firebase');
 const dbRoot = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
 const imgRefRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/img_ref');
 const imgSanitizerTaskRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/img_sanitizer_task');
+const taskImgVerificationTrinaryRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/task-img-verification-trinary');
 
 var allImgData;
 var allImgDataUpdated = [];
@@ -63,18 +64,26 @@ var pushAndAddUIDs = (targetRef, sourceSet) => {
   });
 };
 
-imgRefRef.once('value', (snapshot) => {
-  var data = snapshot.val();
-  var allPromises = [];
-  for (var key in data) {
-    var imgSanitizerTask = {
-      img_ref_uid: key
-    }
-    allPromises.push(pushAndAddUID(imgSanitizerTaskRef, imgSanitizerTask));
-  }
-  Promise.all(allPromises)
-    .then(() => {
-      console.log('all img_sanitizer_task refs added');
-    })
-});
+// imgSanitizerTaskRef.once('value', (snapshot) => {
+//   var data = snapshot.val();
+//   var allPromises = [];
+//   for (var key in data) {
+//     var imgSanitizerTask = {
+//       img_ref_uid: key
+//     }
+//     allPromises.push(pushAndAddUID(imgSanitizerTaskRef, imgSanitizerTask));
+//   }
+//   Promise.all(allPromises)
+//     .then(() => {
+//       console.log('all img_sanitizer_task refs added');
+//     })
+// });
 
+var renameBucket = (targetRefKey, newRefKey) => {
+  dbRoot.child(targetRefKey).once('value', (snapshot) => {
+    var data = snapshot.val();
+    dbRoot.child(newRefKey).set(data);
+  });
+};
+
+// renameBucket('img_sanitizer_task', 'task_img_verification_trinary');
