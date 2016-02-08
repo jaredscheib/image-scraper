@@ -24,6 +24,7 @@
   "homepage": "https://github.com/tagasauris/image-scraper#readme",
   "dependencies": {
     "bluebird": "^3.2.2",
+    "firebase": "^2.4.0",
     "google-images": "^1.0.0",
     "request": "^2.69.0"
   },
