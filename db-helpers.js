@@ -4,9 +4,8 @@ const Promise = require('bluebird');
 const fs = require('fs');
 const Firebase = require('firebase');
 
-const dbRoot = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
+const dbRootRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
 const imgRefRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/img_ref');
-const imgSanitizerTaskRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/img_sanitizer_task');
 const taskImgVerificationTrinaryRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/task-img-verification-trinary');
 
 var allImgData;
@@ -80,10 +79,17 @@ var pushAndAddUIDs = (targetRef, sourceSet) => {
 // });
 
 var renameBucket = (targetRefKey, newRefKey) => {
-  dbRoot.child(targetRefKey).once('value', (snapshot) => {
+  dbRootRef.child(targetRefKey).once('value', (snapshot) => {
     var data = snapshot.val();
-    dbRoot.child(newRefKey).set(data);
+    console.log(targetRefKey, 'object.keys length', Object.keys(data).length);
+    dbRootRef.child(newRefKey).set(data, function(err) {
+      if (err) throw err;
+      dbRootRef.child(targetRefKey).remove(function(err) {
+        if (err) throw err;
+        console.log('renamed', targetRefKey, 'to', newRefKey);
+      });
+    });
   });
 };
 
-// renameBucket('img_sanitizer_task', 'task_img_verification_trinary');
+// renameBucket('task_img_verification_trinary_tickets', 'task_img_verification_trinary_ticket_pool');
