@@ -5,11 +5,12 @@ const secrets = require('./secrets.js');
 const Firebase = require('firebase');
 const Promise = require('bluebird');
 const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
-const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
-const fbRef = 'img_ref';
 const args = process.argv.slice(2);
 const queryStr = String(args[0]);
 const resultsCnt = Number(args[1]);
+const taskNameStr = String(args[2]) || 'task_img_verification_trinary';
+const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
+const imgRef = 'img_ref';
 
 function flattenArray(arrTwoDim) {
   return [].concat.apply([], arrTwoDim);
@@ -28,10 +29,12 @@ function flattenObj(obj, modOption) {
   });
   return obj;
 }
-function throwErr(err) {
-  throw err;
+function sendErr(err) {
+  console.log(err);
+  return 503;
 }
-function getImagesData(queryString, _imgTotal) {
+function getImgData(queryString, _imgTotal) {
+  console.log('hello', queryString, _imgTotal);
   const imgDataToResolve = [];
   _imgTotal = _imgTotal < 10 ? 10 : _imgTotal;
   const imgTotal = Math.round(_imgTotal / 10) * 10 || 200;
@@ -39,18 +42,19 @@ function getImagesData(queryString, _imgTotal) {
     // .search options arg: https://developers.google.com/custom-search/json-api/v1/reference/cse/list
     const queryOptions = {
       start: String(startIndex),
-      imgType: 'photo' // todo
+      imgType: 'photo' // todo - re-modify node package & find imgType bug workaround
     };
     imgDataToResolve.push(googleClient.search(queryString, queryOptions));
   }
 
   return Promise.all(imgDataToResolve)
   .then(imgData => {
+    console.log('imgData', imgData);
     const flatImgData = flattenArray(imgData).map(obj => flattenObj(obj, { query: queryString }));
     // let fileName = query.slice().split(' ').join('_')
     return flatImgData;
   })
-  .catch(throwErr);
+  .catch(sendErr);
   // console.log(queryString, startIndex, imgTotal);
 }
 function pushAndAddUID(targetRef, sourceObj) {
@@ -60,26 +64,52 @@ function pushAndAddUID(targetRef, sourceObj) {
     item.uid = tempRef.path.u[1];
     return tempRef.update({ uid: item.uid });
   })
-  .then(() => {
-    // console.log(`item at ${targetRef.path.u[0]}/${item.uid} updated`);
-  })
-  .catch(throwErr);
+  // .then(() => {
+  //   // console.log(`item at ${targetRef.path.u[0]}/${item.uid} updated`);
+  // })
+  .catch(sendErr);
 }
 function postImgDataToFirebase(allImgData) {
   // console.log('returned final promise result', allImgData);
-  const childRef = dbRef.child(fbRef);
-  return Promise.all(allImgData.map(imgData => pushAndAddUID(childRef, imgData)));
+  return Promise.all(allImgData.map(imgData => pushAndAddUID(dbRef.child(imgRef), imgData)));
 }
 function fetchAndStore(queryString, resultsCount) {
   Firebase.goOnline();
-  getImagesData(queryString, resultsCount)
+  return getImgData(queryString, resultsCount)
   .then(postImgDataToFirebase)
-  .then(() => Firebase.goOffline)
-  .catch(throwErr);
+  .then(promiseData => {
+    console.log('promiseData', promiseData);
+  })
+  .catch(sendErr);
 }
+function createTicketsPool(taskName) {
+  dbRef.child(imgRef).once('value', (snapshot) => {
+    const imgData = snapshot.val();
+    console.log(imgData);
+    const allPromises = [];
+    for (const UID in imgData) {
+      if (imgData.hasOwnProperty(UID)) {
+        const poolTicket = {
+          img_ref_uid: UID
+        };
+        allPromises.push(pushAndAddUID(dbRef.child(`${taskName}_tickets_pool`), poolTicket));
+      }
+    }
+    return Promise.all(allPromises)
+    .then(() => { console.log('created tickets'); Firebase.goOffline(); return 200; })
+    .catch(sendErr);
+  });
+}
+// function fetchAndStoreAndPrepareTask(queryString, resultsCount, taskName) {
+//   fetchAndStore(queryString, resultsCount)
+//   .then(createTicketsPool(taskName))
+//   .then(() => { console.log('created tickets'); Firebase.goOffline(); return 200; })
+//   .catch(sendErr);
+// }
 
 if (queryStr && resultsCnt) {
   fetchAndStore(queryStr, resultsCnt);
 }
 
-module.exports = fetchAndStore;
+module.exports.fetchAndStore = fetchAndStore;
+module.exports.createTicketsPool = createTicketsPool;

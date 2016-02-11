@@ -1,22 +1,29 @@
-'use strict'
+'use strict';
 
-var path = require('path')
-var express = require('express')
-const fetchImgRefsFromCSE = require('./scraper.js')
-var app = express()
+// const path = require('path');
+const express = require('express');
+const scraper = require('./scraper.js');
+const app = express();
 
-var PORT = process.env.PORT || 3020
+const PORT = process.env.PORT || 3020;
 
 // curl 'http://localhost:3020/images/fetch_and_store?concept=car&count=10'
-app.get('/images/fetch_and_store', function(req, res) {
-  var concept = req.query.concept
-  var count = req.query.count
-  const imgRefs = fetchImgRefsFromCSE(concept, count)
+app.get('/images/fetch_and_store', (req, res) => {
+  const concept = req.query.concept;
+  const count = req.query.count;
+  const responseCode = scraper.fetchAndStore(concept, count);
   // todo send images themselves to S3 and add to imgRefs
-  res.sendStatus(200)
-})
+  res.sendStatus(responseCode);
+});
 
-app.listen(PORT, 'localhost', function(err) {
-  if (err) { console.log(err); return }
-  console.log('Listening at http://localhost:'+PORT)
-})
+app.get('/tickets/create_pool', (req, res) => {
+  const task = req.query.task;
+  console.log('task', task)
+  const responseCode = scraper.createTicketsPool(task);
+  // res.sendStatus(responseCode);
+});
+
+app.listen(PORT, 'localhost', (err) => {
+  if (err) { console.log(err); }
+  console.log(`Listening at http://localhost:${PORT}`);
+});
