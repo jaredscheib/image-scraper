@@ -8,6 +8,7 @@
     "no-console": [1],
     "no-warning-comments": [1],
     "comma-dangle": [0],
+    "no-param-reassign": [1],
   },
   "env": {
     "browser": true
