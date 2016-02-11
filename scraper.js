@@ -8,7 +8,7 @@ const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
 const args = process.argv.slice(2);
 const queryStr = String(args[0]);
 const resultsCnt = Number(args[1]);
-const taskNameStr = String(args[2]) || 'task_img_verification_trinary';
+// const taskNameStr = String(args[2]) || 'task_img_verification_trinary';
 const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
 const imgRef = 'img_ref';
 
