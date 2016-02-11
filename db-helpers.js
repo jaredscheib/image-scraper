@@ -92,4 +92,4 @@ var renameBucket = (targetRefKey, newRefKey) => {
   });
 };
 
-// renameBucket('task_img_verification_trinary_tickets', 'task_img_verification_trinary_ticket_pool');
+// renameBucket('task_img_verification_trinary_ticket_pool', 'task_img_verification_trinary_tickets_pool');
