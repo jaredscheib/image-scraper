@@ -4,7 +4,7 @@
   "description": "Crawl Google & Bing Images, send results to Amazon S3",
   "main": "scraper.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
   "homepage": "https://github.com/tagasauris/image-scraper#readme",
   "dependencies": {
     "bluebird": "^3.2.2",
+    "express": "^4.13.4",
     "firebase": "^2.4.0",
     "google-images": "^1.0.0",
     "request": "^2.69.0"

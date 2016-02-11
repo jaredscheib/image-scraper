@@ -1,99 +1,69 @@
-'use strict';
+'use strict'
 
-const fs = require('fs');
-// const async = require('async');
-const googleImages = require('google-images');
-const secrets = require('./secrets.js');
+const googleImages = require('google-images')
+const secrets = require('./secrets.js')
+const Firebase = require('firebase')
+const Promise = require('bluebird')
+const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY)
+const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/')
+const fbRef = 'img_ref2'
+const args = process.argv.slice(2)
+const queryString = String(args[0])
+const resultsCount = Number(args[1])
 
-const args = process.argv.slice(2);
-const resultsCount = args[0];
-const arrSearchTerms = args.slice(1).join(' ').split(',').map((item) => {return item.trim();});
+function flattenArray (arrTwoDim) {
+  return [].concat.apply([], arrTwoDim)
+}
+function flattenObj (obj) {
+  Object.keys(obj).forEach(prefix => {
+    if(typeof obj[prefix] === 'object' && !Array.isArray(obj[prefix])){
+      Object.keys(obj[prefix]).forEach(key => {
+        obj[`${prefix}_${key}`] = obj[prefix][key]
+      })
+      delete obj[prefix]
+    }
+  })
+  return obj
+}
+function throwErr (err) {
+  throw err
+}
+function getImagesData (queryString, _imgTotal) {
+  _imgTotal = _imgTotal < 10 ? 10 : _imgTotal
+  const imgTotal = Math.round(_imgTotal / 10) * 10 || 200
+  let imgDataToResolve = []
+  for (let startIndex = 1; startIndex < imgTotal; startIndex += 10) {
+    // .search options arg: https://developers.google.com/custom-search/json-api/v1/reference/cse/list
+    var queryOptions = {
+      start: String(startIndex),
+      imgType: 'photo' // todo
+    }
+    imgDataToResolve.push(googleClient.search(queryString, queryOptions))
+    console.log(queryString, startIndex, imgTotal)
+  }
 
-const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
+  return Promise.all(imgDataToResolve)
+  .then(imgData => {
+    let flatImgData = flattenArray(imgData).map(flattenObj)
+    let fileName = queryString.slice().split(' ').join('_')
+    return flatImgData
+  })
+  .catch(throwErr)
+}
+function postImgDataToFirebase (allImgData) {
+  console.log('returned final promise result', allImgData)
+  const childRef = dbRef.child(fbRef)
+  return Promise.all(allImgData.map(imgData => childRef.push(imgData)))
+  .then(() => Firebase.goOffline)
+}
+function fetch_and_store (queryString, resultsCount) {
+  Firebase.goOnline()
+  getImagesData(queryString, resultsCount)
+  .then(postImgDataToFirebase)
+  .catch(throwErr)
+}
 
-var arrayFlatten = (arrTwoDim) => {
-  return [].concat.apply([], arrTwoDim);
-};
-
-var writeAllData = (data, fileName) => {
-  fs.writeFile(`results/allImgData.js`, `var allImgData = ${JSON.stringify(data, null, 4)}`, { flags: 'w' }, (err) => {
-    if (err) throw err;
-    console.log(`Saved allImgData.js`);
-  });
-};
-
-var writeImgSetData = (data, fileName, callback) => {
-  fs.writeFile(`results/${fileName}-all_data.json`, JSON.stringify(data, null, 4), (err) => {
-    if (err) callback(err);
-    console.log(`Saved all image data from Google Image search: "${fileName}"`)
-
-    var urlData = data.map((item) => {
-      return item.url;
-    });
-
-    fs.writeFile(`results/${fileName}-urls_only.json`, JSON.stringify(urlData, null, 4), err => {
-      if (err) callback(err);
-      console.log(`Saved image URLs only from Google Image search: "${fileName}"`)
-      
-      var urlData_thumbnail = data.map((item) => {
-        return item.thumbnail.url;
-      });
-
-      fs.writeFile(`results/${fileName}-thumbnails_only.json`, JSON.stringify(urlData_thumbnail, null, 4), err => {
-        if (err) callback(err);
-        console.log(`Saved thumbnail URLs only from Google Image search: "${fileName}"`)
-        callback();
-      });
-    });
-  });
-};
-
-var getImagesData = (searchesToResolve, imgTotal) => {
-  imgTotal = Math.round(imgTotal / 10) * 10 || 200;
-  
-  return Promise.all(
-    searchesToResolve.map((searchTerms, i) => {
-      let imagesDataToResolve = [];
-
-      for (let start = 1; start < imgTotal; start += 10) {
-        // .search options arg: https://developers.google.com/custom-search/json-api/v1/reference/cse/list
-        var queryOptions = {
-          start: start.toString(),
-          imgType: 'photo'
-        }
-        imagesDataToResolve.push(googleClient.search(searchTerms, queryOptions));
-        console.log(i, searchTerms, start, imgTotal)
-      }
-
-      return Promise.all(imagesDataToResolve)
-        .then((imageData) => {
-          let flattened = arrayFlatten(imageData);
-          let fileName = searchTerms.slice().split(' ').join('_');
-          return new Promise((resolve, reject) => {
-            writeImgSetData(flattened, fileName, (err) => {
-              if (err) reject(err);
-              resolve(flattened, fileName);
-            });
-          });
-        })
-        .catch((err) => {
-          throw err;
-        });
-    })
-  );
-};
-
-getImagesData(arrSearchTerms, resultsCount)
-.then((allImgDataMap, fileName) => {
-  let flattened = arrayFlatten(allImgDataMap);
-  let allImgData = {};
-  flattened.forEach((item) => {
-    allImgData[fileName] = item;
-  });
-  console.log('returned final promise result', flattened);
-  writeAllData(allImgData);
-})
-.catch((err) => {
-  throw err;
-});
-//Truck, Car, Motorcycles, Motocross, Porsche, Monster Truck, Steering Wheel, Steering Wheel Logo, Formula One, Minivan
+if(queryString && resultsCount){
+  fetch_and_store(queryString, resultsCount)
+}
+module.exports = fetch_and_store
