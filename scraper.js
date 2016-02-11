@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const async = require('async');
+// const async = require('async');
 const googleImages = require('google-images');
 const secrets = require('./secrets.js');
 
@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 const resultsCount = args[0];
 const arrSearchTerms = args.slice(1).join(' ').split(',').map((item) => {return item.trim();});
 
-let googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
+const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
 
 var arrayFlatten = (arrTwoDim) => {
   return [].concat.apply([], arrTwoDim);
@@ -57,7 +57,11 @@ var getImagesData = (searchesToResolve, imgTotal) => {
 
       for (let start = 1; start < imgTotal; start += 10) {
         // .search options arg: https://developers.google.com/custom-search/json-api/v1/reference/cse/list
-        imagesDataToResolve.push(googleClient.search(searchTerms, { start: start.toString(), imgType: 'photo' }));
+        var queryOptions = {
+          start: start.toString(),
+          imgType: 'photo'
+        }
+        imagesDataToResolve.push(googleClient.search(searchTerms, queryOptions));
         console.log(i, searchTerms, start, imgTotal)
       }
 
