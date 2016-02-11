@@ -7,7 +7,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3020;
 
-// curl 'http://localhost:3020/images/fetch_and_store?concept=car&count=10'
+// curl 'http://localhost:3020/images/fetch_and_store?concept=car&count=50'
 app.get('/images/fetch_and_store', (req, res) => {
   const concept = req.query.concept;
   const count = req.query.count;
@@ -16,11 +16,12 @@ app.get('/images/fetch_and_store', (req, res) => {
   res.sendStatus(responseCode);
 });
 
+// curl 'http://localhost:3020/tickets/create_pool?task=task_img_verification_trinary'
 app.get('/tickets/create_pool', (req, res) => {
   const task = req.query.task;
-  console.log('task', task)
-  const responseCode = scraper.createTicketsPool(task);
-  // res.sendStatus(responseCode);
+  console.log('task', task);
+  scraper.createTicketsPool(task)
+  .then((response) => { res.sendStatus(response); });
 });
 
 app.listen(PORT, 'localhost', (err) => {
