@@ -4,7 +4,7 @@
   "description": "Crawl Google & Bing Images, send results to Amazon S3",
   "main": "scraper.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
