@@ -1,16 +1,20 @@
 'use strict';
 
+const altSearchEngines = require('./scraper-alt-enginers.js');
 const googleImages = require('google-images');
+
 const secrets = require('./secrets.js');
 const Firebase = require('firebase');
 const Promise = require('bluebird');
 const googleClient = googleImages(secrets.CSE_ID, secrets.API_KEY);
+
+const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
+const imgRef = 'img_ref';
+
 const args = process.argv.slice(2);
 const queryStr = String(args[0]);
 const resultsCnt = Number(args[1]);
 // const taskNameStr = String(args[2]) || 'task_img_verification_trinary';
-const dbRef = new Firebase('https://dazzling-heat-3394.firebaseio.com/');
-const imgRef = 'img_ref';
 
 function flattenArray(arrTwoDim) {
   return [].concat.apply([], arrTwoDim);
@@ -54,7 +58,7 @@ function getImgData(queryString, _imgTotal) {
     return flatImgData;
   })
   .catch(sendErr);
-  // console.log(queryString, startIndex, imgTotal);
+  // console.log(queryString, startIndex, imgTotal);// todo mix and deduplicate results from alt engines
 }
 function pushAndAddUID(targetRef, sourceObj) {
   const item = sourceObj;
