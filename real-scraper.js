@@ -9,8 +9,6 @@ const bing = new Scraper.Bing();
 const yahoo = new Scraper.Yahoo();
 const picsearch = new Scraper.Picsearch();
 
-const writePath = 'results/bing.json';
-
 //photo only
 //google: &tbs=itp:photo
 //bing: &qft=+filterui:photo-photo
@@ -34,6 +32,14 @@ const writePath = 'results/bing.json';
 //   console.log('out', item);
 // });
 
+function writeFile(file, data) {
+  return fs.writeFileAsync(
+    file,
+    `${file.slice(-5) === '.json' ? '' : 'var allImgData = '}${JSON.stringify(data, null, 4)};`,
+    { flags: 'w' }
+  );
+}
+
 function normalizeBingToGoogle(imgObjSet) {
   return _.map(imgObjSet, (item) => {
     let imgObj = item;
@@ -45,18 +51,21 @@ function normalizeBingToGoogle(imgObjSet) {
   });
 }
 
-bing.list({
-  keyword: 'banana',
-  num: 10,
-  detail: true
-})
-.then(res => {
-  const normalRes = normalizeBingToGoogle(res);
-  return fs.writeFileAsync(
-    writePath,
-    `var allImgData = ${JSON.stringify(normalRes, null, 4)};`,
-    { flags: 'w' }
-    );
-}).catch(err => {
-  throw err;
-});
+function searchBing(queryString, maxResultsNum) {
+  bing.list({
+    keyword: queryString,
+    num: maxResultsNum,
+    detail: true
+  })
+  .then(res => {
+    const normalRes = normalizeBingToGoogle(res);
+    writeFile(`./results/${queryString.replace(' ', '_')}.js`, normalRes);
+    writeFile(`./results/${queryString.replace(' ', '_')}.json`, normalRes);
+  }).catch(err => {
+    throw err;
+  });
+}
+
+module.exports = {
+  searchBing: searchBing,
+};
