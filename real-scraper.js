@@ -37,7 +37,7 @@ const writePath = 'results/bing.json';
 function normalizeBingToGoogle(imgObjSet) {
   return _.map(imgObjSet, (item) => {
     let imgObj = item;
-    imgObj.thumb = imgObj.thumbnail_url;
+    imgObj.thumbnail_url = imgObj.thumb;
     delete imgObj.thumb;
     imgObj.size = `${imgObj.size.slice(0, -2)}000`;
     imgObj.type = `image/${imgObj.format}`;
@@ -47,7 +47,7 @@ function normalizeBingToGoogle(imgObjSet) {
 
 bing.list({
   keyword: 'banana',
-  num: 1000,
+  num: 10,
   detail: true
 })
 .then(res => {
