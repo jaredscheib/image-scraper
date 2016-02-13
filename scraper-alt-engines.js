@@ -32,14 +32,6 @@ const picsearch = new Scraper.Picsearch();
 //   console.log('out', item);
 // });
 
-function writeFile(file, data) {
-  return fs.writeFileAsync(
-    file,
-    `${file.slice(-5) === '.json' ? '' : 'var allImgData = '}${JSON.stringify(data, null, 4)};`,
-    { flags: 'w' }
-  );
-}
-
 function normalizeBingToGoogle(imgObjSet) {
   return _.map(imgObjSet, (item) => {
     let imgObj = item;

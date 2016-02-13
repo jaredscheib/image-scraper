@@ -14,7 +14,7 @@ const imgRef = 'img_ref';
 const args = process.argv.slice(2);
 const queryStr = String(args[0]);
 const resultsCnt = Number(args[1]);
-// const taskNameStr = String(args[2]) || 'task_img_verification_trinary';
+// const taskNameStr = String(args[2]) || 'task_img_verification';
 
 function flattenArray(arrTwoDim) {
   return [].concat.apply([], arrTwoDim);
@@ -98,7 +98,8 @@ function createTicketsPool(taskName) {
       for (const UID in imgData) {
         if (imgData.hasOwnProperty(UID)) {
           const poolTicket = {
-            img_ref_uid: UID
+            img_ref_uid: UID,
+            status: true // true === open; false === closed
           };
           allPromises.push(pushAndAddUID(dbRef.child(`${taskName}_tickets_pool`), poolTicket));
         }

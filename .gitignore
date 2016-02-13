@@ -1,5 +1,5 @@
 node_modules
 
 secrets.js
-/test/
-/results/
+test
+results

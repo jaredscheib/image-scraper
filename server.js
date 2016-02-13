@@ -16,7 +16,7 @@ app.get('/images/fetch_and_store', (req, res) => {
   res.sendStatus(responseCode);
 });
 
-// curl 'http://localhost:3020/tickets/create_pool?task=task_img_verification_trinary'
+// curl 'http://localhost:3020/tickets/create_pool?task=task_img_verification'
 app.get('/tickets/create_pool', (req, res) => {
   const task = req.query.task;
   console.log('task', task);
